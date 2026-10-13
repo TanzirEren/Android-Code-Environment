@@ -1,0 +1,51 @@
+name: ACE CI
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Ensure Android platform 34
+        run: |
+          yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "platforms;android-34" > /dev/null 2>&1 || true
+
+      # ACE compiles Java and resources on the phone. It needs the Android framework (android.jar,
+      # which also contains the framework resource table) — it is bundled into the app here.
+      - name: Bundle android.jar into app assets
+        run: |
+          mkdir -p app/src/main/assets
+          JAR="$ANDROID_HOME/platforms/android-34/android.jar"
+          if [ -f "$JAR" ]; then
+            cp "$JAR" app/src/main/assets/android.jar
+            echo "android.jar bundled OK ($(du -h "$JAR" | cut -f1))"
+          else
+            echo "ERROR: android.jar not found on runner - the app cannot compile without it"
+            exit 1
+          fi
+
+      - name: Set up Gradle 8.4
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: '8.4'
+
+      - name: Build Debug APK
+        run: gradle :app:assembleDebug --no-daemon --stacktrace
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ACE-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
