@@ -1,0 +1,59 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.ace.ide'
+    compileSdk 34
+
+    defaultConfig {
+        applicationId 'com.ace.ide'
+        minSdk 26
+        targetSdk 34
+        versionCode 1
+        versionName '1.0'
+    }
+
+    buildTypes {
+        release {
+            minifyEnabled false
+        }
+    }
+
+    compileOptions {
+        sourceCompatibility JavaVersion.VERSION_1_8
+        targetCompatibility JavaVersion.VERSION_1_8
+    }
+
+    packaging {
+        resources {
+            excludes += ['META-INF/*.SF', 'META-INF/*.DSA', 'META-INF/*.RSA',
+                         'META-INF/*.EC', 'META-INF/versions/**',
+                         'META-INF/DEPENDENCIES', 'META-INF/LICENSE', 'META-INF/LICENSE.txt',
+                         'META-INF/NOTICE', 'META-INF/NOTICE.txt',
+                         'META-INF/INDEX.LIST', 'META-INF/AL2.0', 'META-INF/LGPL2.1',
+                         'META-INF/eclipse.inf', 'META-INF/ECLIPSE_.*',
+                         '**/about.html', '**/about_files/**', '**/plugin.properties',
+                         '.api_description', '**/.api_description', '**/*.kotlin_module',
+                         '**/module-info.class']
+            merges += ['META-INF/services/**']
+            pickFirsts += ['**/*.properties']
+        }
+    }
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8'
+}
+
+dependencies {
+    // on-device Java compiler
+    implementation 'org.eclipse.jdt.core.compiler:ecj:4.6.1'
+    // Java bytecode -> DEX
+    implementation 'com.android.tools:r8:2.1.75'
+    // APK signing (v1 + v2 + v3)
+    implementation 'com.android.tools.build:apksig:8.2.2'
+    // git clone
+    implementation 'org.eclipse.jgit:org.eclipse.jgit:5.13.3.202401111512-r'
+    implementation 'org.slf4j:slf4j-nop:1.7.36'
+}
