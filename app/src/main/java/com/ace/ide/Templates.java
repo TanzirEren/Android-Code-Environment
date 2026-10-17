@@ -84,13 +84,13 @@ public final class Templates {
     }
 
     private static String colors() {
-        return "<resources>\n    <color name=\"colorPrimary\">#6B6753</color>\n"
-                + "    <color name=\"colorPrimaryDark\">#55523F</color>\n"
-                + "    <color name=\"colorAccent\">#928C6F</color>\n"
-                + "    <color name=\"background\">#F3EEEA</color>\n"
+        return "<resources>\n    <color name=\"colorPrimary\">#385F8C</color>\n"
+                + "    <color name=\"colorPrimaryDark\">#2F5179</color>\n"
+                + "    <color name=\"colorAccent\">#4A729D</color>\n"
+                + "    <color name=\"background\">#E9E9E9</color>\n"
                 + "    <color name=\"surface\">#FFFFFF</color>\n"
-                + "    <color name=\"textPrimary\">#2B2A22</color>\n"
-                + "    <color name=\"textSecondary\">#6F6A5A</color>\n</resources>\n";
+                + "    <color name=\"textPrimary\">#1E2B3A</color>\n"
+                + "    <color name=\"textSecondary\">#5B6B7E</color>\n</resources>\n";
     }
 
     private static String styles() {
@@ -110,7 +110,7 @@ public final class Templates {
     private static final String CARD = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n"
             + "<shape xmlns:android=\"http://schemas.android.com/apk/res/android\" android:shape=\"rectangle\">\n"
             + "    <solid android:color=\"@color/surface\" />\n    <corners android:radius=\"18dp\" />\n"
-            + "    <stroke android:width=\"1dp\" android:color=\"#E0D7D0\" />\n</shape>\n";
+            + "    <stroke android:width=\"1dp\" android:color=\"#C9D1DB\" />\n</shape>\n";
 
     private static String layout(int t) {
         String head = "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n";

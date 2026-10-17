@@ -83,7 +83,7 @@ public class DexViewerActivity extends Activity {
         // ---- header ----
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.VERTICAL);
-        header.setBackground(Ui.gradient(Ui.HEAD_TOP, Ui.ACCENT, 0, this));
+        header.setBackground(Ui.gradient(Ui.HEAD_TOP, Ui.HEAD_BOTTOM, 0, this));
         header.setPadding(Ui.dp(16), Ui.dp(24), Ui.dp(16), Ui.dp(16));
 
         LinearLayout hr = new LinearLayout(this);

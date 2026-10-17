@@ -1,4 +1,4 @@
-# ACE — User Guide
+# ACE — User Guide  (v1.1.0 “Evolution”)
 
 ACE (**A**ndroid **C**ode **E**nvironment) lets you write, build, sign and install Android apps directly on your
 phone using **Java and XML**. This guide explains every part of the app.
@@ -20,6 +20,7 @@ phone using **Java and XML**. This guide explains every part of the app.
 14. [What resources and Java features are supported](#14-what-is-supported)
 15. [Troubleshooting](#15-troubleshooting)
 16. [Tips](#16-tips)
+17. [Automatic library download](#17-automatic-library-download)
 
 ---
 
@@ -198,6 +199,7 @@ also marked in the editor (red lines); the first error file opens automatically.
 - **Maven coordinate:** `group:artifact:version`, for example `com.squareup.okhttp3:okhttp:3.14.9`.
   Add `@aar` to fetch an aar. Dependencies of a library must be added too.
 - **Import .jar / .aar:** copies files into `libs/`.
+- **Automatic mode (new in 1.1.0):** ACE also adds and downloads libraries for you — see [section 17](#17-automatic-library-download).
 
 Notes:
 - Libraries must be built for **Java 8 or older** bytecode (the on-device compiler is Java 8).
@@ -237,10 +239,11 @@ Gear icon on the App Builder tab (or ⋮ → Settings in the IDE).
 
 | Section | What you can change |
 |---|---|
-| Appearance | Theme (system / light / dark), show hidden files |
+| Appearance | Show hidden files (ACE always uses its blue theme: background `#385F8C`, icons and text `#E9E9E9`) |
 | Editor | Font size, pinch zoom, word wrap, line numbers, current-line highlight, auto indent, auto-close, symbol bar, suggestions, live error check, auto-save, keep screen on |
 | New app defaults | Package prefix, min/target SDK, default template, default icon radius |
 | Java → DEX | Min API level, bundle libraries |
+| Libraries | Auto-detect libraries from imports and `build.gradle` |
 | Signing | Opens the key manager |
 | Git | Default username and access token |
 | Storage | ACE folder location, clear library cache, rebuild framework cache, clear DEX outputs |
@@ -291,3 +294,21 @@ The full log of the last build is in ⋮ → **Last build log** and in `output/l
 - Clone a repository, press ▶ — many simple Java/XML projects build without changes.
 - Export a project as a zip (⋮ → *Export project*) for backup.
 - Commit `ace.json` to Git — it stores version, SDK and library choices.
+
+## 17. Automatic library download
+
+New in **v1.1.0**. When you open a project in the code IDE, ACE looks at the project and prepares its libraries:
+
+1. **Reads your code** — `import com.google.gson.Gson;` adds *Gson*, `import okhttp3.*;` adds *OkHttp*, and so on for every library in the catalog.
+2. **Reads `build.gradle`** (imported / cloned projects) — `implementation 'group:artifact:version'` lines are added as Maven libraries. AndroidX / Google Play / Firebase / test dependencies are skipped because they need Android resources.
+3. **Resolves dependencies** of the libraries you added by coordinate (their POM files), up to three levels deep.
+4. **Downloads everything in parallel** (4 files at once) and caches it, so the next build is instant and works offline.
+
+While it runs, a slim **download bar** appears under the IDE top bar: a bouncing arrow, a shimmering progress bar,
+the percentage and the file being downloaded. It turns into a ✔ when the libraries are ready (or into a red message
+with *tap to retry* if you are offline — the build will try again anyway).
+
+It also reacts while you work: write a new `import` of a known library and **save** — ACE detects it, adds the
+library and downloads it. Compile errors such as *package com.google.gson does not exist* disappear on their own.
+
+Turn it off in Settings → *Libraries* → **Auto-detect libraries**. Manual control stays in ⋮ → Libraries.

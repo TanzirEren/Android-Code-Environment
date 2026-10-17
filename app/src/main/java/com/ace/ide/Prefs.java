@@ -24,13 +24,8 @@ public class Prefs {
     public static int themeMode(Context c) { return i(c, "themeMode", 0); }
     public static void themeMode(Context c, int v) { putI(c, "themeMode", v); }
 
-    public static boolean dark(Context c) {
-        int m = themeMode(c);
-        if (m == 1) return false;
-        if (m == 2) return true;
-        int ui = c.getResources().getConfiguration().uiMode & Configuration.UI_MODE_NIGHT_MASK;
-        return ui == Configuration.UI_MODE_NIGHT_YES;
-    }
+    /** ACE uses one blue theme with light text, so this is always true */
+    public static boolean dark(Context c) { return true; }
 
     // ---- storage
     public static String folder(Context c) { return s(c, "folder", null); }

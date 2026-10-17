@@ -66,7 +66,7 @@ public class DetailActivity extends Activity {
 
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.VERTICAL);
-        header.setBackground(Ui.gradient(Ui.HEAD_TOP, Ui.ACCENT, 0, this));
+        header.setBackground(Ui.gradient(Ui.HEAD_TOP, Ui.HEAD_BOTTOM, 0, this));
         header.setPadding(Ui.dp(18), Ui.dp(26), Ui.dp(18), Ui.dp(22));
 
         TextView back = Ui.text(this, "←  Back", 15, Color.WHITE, true);
@@ -169,7 +169,7 @@ public class DetailActivity extends Activity {
         progressOverlay = new LinearLayout(this);
         progressOverlay.setOrientation(LinearLayout.VERTICAL);
         progressOverlay.setGravity(Gravity.CENTER);
-        progressOverlay.setBackgroundColor(Prefs.dark(this) ? 0xF00B1220 : 0xF0FFFFFF);   // was always white
+        progressOverlay.setBackgroundColor(0xF0385F8C);   // was always white
         progressOverlay.setClickable(true);
         ProgressBar pb = new ProgressBar(this);
         pb.setIndeterminateTintList(ColorStateList.valueOf(Ui.ACCENT));

@@ -68,6 +68,7 @@ public class IdeActivity extends Activity implements ExplorerPanel.Host {
     private View emptyView;
     private ExplorerPanel explorer;
     private View undoBtn, redoBtn;
+    private DownloadStrip dlStrip;
 
     private final List<OpenFile> open = new ArrayList<OpenFile>();
     private OpenFile cur;
@@ -96,6 +97,7 @@ public class IdeActivity extends Activity implements ExplorerPanel.Host {
         buildUi();
         applyEditorPrefs();
         openInitialFile();
+        startLibSync(true);
     }
 
     @Override protected void onPause() {
@@ -107,6 +109,10 @@ public class IdeActivity extends Activity implements ExplorerPanel.Host {
         super.onResume();
         if (editor != null) applyEditorPrefs();
         if (explorer != null) explorer.refresh();
+        if (isApp && dlStrip != null) {
+            Project np = Project.byId(this, p.id);
+            if (np != null) { p = np; startLibSync(false); }
+        }
     }
 
     @Override protected void onDestroy() {
@@ -170,6 +176,9 @@ public class IdeActivity extends Activity implements ExplorerPanel.Host {
         }));
         main.addView(top, new LinearLayout.LayoutParams(-1, Ui.dp(48)));
         main.addView(Ui.divider(this, t.cardStroke));
+        dlStrip = new DownloadStrip(this);
+        dlStrip.setOnRetry(new Runnable() { @Override public void run() { startLibSync(false); } });
+        main.addView(dlStrip, new LinearLayout.LayoutParams(-1, 0));
 
         // --- tabs
         tabsScroll = new HorizontalScrollView(this);
@@ -281,6 +290,29 @@ public class IdeActivity extends Activity implements ExplorerPanel.Host {
         editor.setVisibility(cur == null ? View.INVISIBLE : View.VISIBLE);
         subView.setText(cur == null ? "" : cur.file.getName());
         updateStatus();
+    }
+
+    // ------------------------------------------------------------------ libraries
+
+    /** detect libraries from the project, add what is missing and download in parallel with an animated bar */
+    private void startLibSync(boolean detect) {
+        if (!isApp || layout == null || !layout.valid() || LibFetcher.isRunning()) return;
+        LibFetcher.run(this, p, layout, detect, new LibFetcher.Listener() {
+            @Override public void onStart(String message) { dlStrip.start(message); }
+            @Override public void onProgress(float fraction, String message) { dlStrip.progress(fraction, message); }
+            @Override public void onDone(String message, boolean error, boolean changed) {
+                if (message != null) dlStrip.finish(message, error);
+                if (changed) { Project np = Project.byId(IdeActivity.this, p.id); if (np != null) p = np; }
+            }
+        });
+    }
+
+    /** a new import of a known library appeared in a saved file */
+    private void checkImports(String text) {
+        if (!isApp || !Prefs.b(this, "autoLibs", true)) return;
+        for (String id : Libs.detectIdsInText(text.substring(0, Math.min(text.length(), 20000)))) {
+            if (!p.libs.contains(id)) { startLibSync(true); return; }
+        }
     }
 
     // ------------------------------------------------------------------ files
@@ -415,6 +447,7 @@ public class IdeActivity extends Activity implements ExplorerPanel.Host {
         try {
             FileUtil.writeText(of.file, of.text);
             of.dirty = false;
+            if (of.lang == Highlighter.JAVA) checkImports(of.text);
             return true;
         } catch (Exception e) {
             Ui.toast(this, "Save failed: " + e.getMessage());

@@ -68,7 +68,7 @@ public final class StoragePicker {
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         LinearLayout root = new LinearLayout(a);
         root.setOrientation(LinearLayout.VERTICAL);
-        root.setBackground(Ui.outline(t.dark ? 0xF2262219 : 0xF8FBF8F5, t.cardStroke, 22, 1, a));
+        root.setBackground(Ui.outline(t.dialog, t.cardStroke, 22, 1, a));
         int p = Ui.dp(14);
         root.setPadding(p, p, p, Ui.dp(10));
 

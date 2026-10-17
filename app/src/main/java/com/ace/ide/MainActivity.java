@@ -67,17 +67,17 @@ public class MainActivity extends Activity {
 
     private void splash() {
         final FrameLayout sp = new FrameLayout(this);
-        sp.setBackgroundColor(0xFFD9D0CB);
+        sp.setBackgroundColor(Theme.BG);
         LinearLayout c = new LinearLayout(this);
         c.setOrientation(LinearLayout.VERTICAL);
         c.setGravity(Gravity.CENTER);
         ImageView logo = new ImageView(this);
         logo.setImageResource(R.drawable.logo);
         c.addView(logo, new LinearLayout.LayoutParams(Ui.dp(120), Ui.dp(120)));
-        TextView n = Ui.text(this, "ACE", 30, 0xFF55523F, true);
+        TextView n = Ui.text(this, "ACE", 30, Theme.FG, true);
         n.setLetterSpacing(0.2f);
         c.addView(n, Ui.lp(-2, -2, 0, 14, 0, 0));
-        c.addView(Ui.text(this, "Android Code Environment", 13, 0xFF6F6A5A, false));
+        c.addView(Ui.text(this, "Android Code Environment", 13, 0xFFB6C3D3, false));
         sp.addView(c, new FrameLayout.LayoutParams(-1, -1, Gravity.CENTER));
         root.addView(sp, new FrameLayout.LayoutParams(-1, -1));
         sp.setAlpha(1f);
@@ -127,7 +127,7 @@ public class MainActivity extends Activity {
         navPill.setPadding(Ui.dp(8), Ui.dp(8), Ui.dp(8), Ui.dp(8));
         GradientDrawable g = Ui.glass(this, t, 40);
         g.setCornerRadius(Ui.dp(60));       // maximum radius = pill
-        g.setColor(t.dark ? 0xDD2A281F : 0xE6FFFFFF);
+        g.setColor(t.navFill);
         navPill.setBackground(g);
         navPill.setElevation(Ui.dp(10));
         navDex = navItem(Icons.CONVERT, "Java → DEX", 0);
@@ -365,13 +365,13 @@ public class MainActivity extends Activity {
         hb.setCornerRadius(Ui.dp(22));
         hero.setBackground(hb);
         hero.setPadding(Ui.dp(18), Ui.dp(18), Ui.dp(18), Ui.dp(16));
-        hero.addView(Ui.text(this, "Java → classes.dex", 18, Color.WHITE, true));
-        TextView sub = Ui.text(this, "Paste or import .java files, add libraries, convert on-device with ECJ + D8 and get a ready dex.", 12, 0xFFEDE8D8, false);
+        hero.addView(Ui.text(this, "Java → classes.dex", 18, Theme.FG, true));
+        TextView sub = Ui.text(this, "Paste or import .java files, add libraries, convert on-device with ECJ + D8 and get a ready dex.", 12, 0xFFC9D1DB, false);
         sub.setLineSpacing(0, 1.15f);
         hero.addView(sub, Ui.lp(-1, -2, 0, 6, 0, 12));
         long total = 0; int ok = 0;
         for (Project p : ps) { total += p.dexSize; if (p.status == Project.ST_OK) ok++; }
-        hero.addView(Ui.text(this, ps.size() + " projects  ·  " + ok + " converted  ·  " + Ui.size(total), 11.5f, 0xFFEDE8D8, true));
+        hero.addView(Ui.text(this, ps.size() + " projects  ·  " + ok + " converted  ·  " + Ui.size(total), 11.5f, 0xFFC9D1DB, true));
         LinearLayout.LayoutParams hl = new LinearLayout.LayoutParams(-1, -2);
         hl.bottomMargin = Ui.dp(14);
         dexList.addView(hero, hl);

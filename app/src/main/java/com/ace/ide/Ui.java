@@ -51,15 +51,17 @@ import java.util.zip.ZipInputStream;
 
 public class Ui {
 
-    public static final int WHITE = 0xFFFFFFFF;
-    public static final int ACCENT = 0xFF6B6753;
-    public static final int ACCENT_DARK = 0xFF55523F;
-    public static final int ACCENT_LIGHT = 0xFFE6E1D2;
-    public static final int HEAD_TOP = 0xFF55523F;
-    public static final int RED = 0xFFC0392B;
-    public static final int RED_LIGHT = 0xFFF6DAD6;
+    public static final int WHITE = 0xFFE9E9E9;   // ACE "white" = #E9E9E9
+    public static final int ACCENT = 0xFFE9E9E9;
+    public static final int ACCENT_DARK = 0xFFC9D1DB;
+    public static final int ACCENT_LIGHT = 0xFF4A729D;
+    public static final int HEAD_BOTTOM = 0xFF4A729D;
+    public static final int BG = 0xFF385F8C;
+    public static final int HEAD_TOP = 0xFF2F5179;
+    public static final int RED = 0xFFD9534F;
+    public static final int RED_LIGHT = 0x33D9534F;
 
-    public static final String VERSION = "1.0";
+    public static final String VERSION = "1.1.0";
 
     private static Context appContext;
 
@@ -128,12 +130,16 @@ public class Ui {
     }
 
     public static TextView button(Context c, String label, int bg) {
-        TextView t = text(c, label, 14.5f, WHITE, true);
+        TextView t = text(c, label, 14.5f, luma(bg) > 0.55f ? BG : WHITE, true);
         t.setGravity(Gravity.CENTER);
         t.setBackground(ripple(c, fill(bg, 14, c)));
         t.setPadding(dp(c, 16), dp(c, 13), dp(c, 16), dp(c, 13));
         pressScale(t, 0.97f);
         return t;
+    }
+
+    public static float luma(int c) {
+        return (0.299f * ((c >> 16) & 255) + 0.587f * ((c >> 8) & 255) + 0.114f * (c & 255)) / 255f;
     }
 
     public static void pressScale(final View v, final float down) {
@@ -158,7 +164,7 @@ public class Ui {
     public static LinearLayout header(final Activity a, String title, String sub, boolean withBack) {
         LinearLayout h = new LinearLayout(a);
         h.setOrientation(LinearLayout.VERTICAL);
-        h.setBackground(gradient(HEAD_TOP, ACCENT, 0, a));
+        h.setBackground(gradient(HEAD_TOP, HEAD_BOTTOM, 0, a));
         h.setPadding(dp(a, 18), dp(a, 26), dp(a, 18), dp(a, 22));
         if (withBack) {
             TextView back = text(a, "←  Back", 15, WHITE, true);
@@ -449,7 +455,7 @@ public class Ui {
     /** translucent "frosted glass" panel */
     public static GradientDrawable glass(Context c, Theme t, float radiusDp) {
         GradientDrawable g = new GradientDrawable(GradientDrawable.Orientation.TOP_BOTTOM,
-                new int[]{t.dark ? 0x33FFFFFF : 0xCCFFFFFF, t.glassFill});
+                new int[]{0x40E9E9E9, t.glassFill});
         g.setCornerRadius(dp(c, radiusDp));
         g.setStroke(Math.max(1, dp(c, 1)), t.glassStroke);
         return g;

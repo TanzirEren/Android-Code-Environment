@@ -1,4 +1,4 @@
-# ACE — Android Code Environment
+# ACE — Android Code Environment  ·  v1.1.0 “Evolution”
 
 Write, build and install Android apps **on your phone** using **Java + XML**.
 ACE is the next version of Java2Dex: the Java → DEX converter is still here (first tab) and a
@@ -50,7 +50,9 @@ format code · comment toggle · duplicate line · tabs · auto-save · image pr
 **Files** — glass side explorer with tree · create / rename / duplicate / move / delete / export / share / properties ·
 import files or folders from anywhere · in-app storage browser.
 
-**Look** — ACE logo colors, light / dark / system theme, frosted-glass dialogs, floating pill navigation.
+**Look** — new blue theme (background `#385F8C`, icons and UI `#E9E9E9`), new logo and app icon, frosted-glass dialogs, floating pill navigation.
+
+**Libraries (new in 1.1.0)** — automatic detection from imports and `build.gradle`, parallel downloads with an animated progress bar in the code IDE, transitive dependencies from Maven POM files.
 
 ## Supported / not supported
 

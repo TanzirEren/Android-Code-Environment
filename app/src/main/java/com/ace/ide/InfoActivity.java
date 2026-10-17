@@ -41,11 +41,11 @@ public class InfoActivity extends Activity {
         ImageView logo = new ImageView(this);
         logo.setImageResource(R.drawable.logo);
         head.addView(logo, new LinearLayout.LayoutParams(Ui.dp(84), Ui.dp(84)));
-        TextView n = Ui.text(this, "ACE", 28, Color.WHITE, true);
+        TextView n = Ui.text(this, "ACE", 28, Theme.FG, true);
         n.setLetterSpacing(0.2f);
         head.addView(n, Ui.lp(-2, -2, 0, 10, 0, 0));
-        head.addView(Ui.text(this, "Android Code Environment", 13, 0xFFEDE8D8, false));
-        head.addView(Ui.text(this, "Version " + Ui.VERSION, 11.5f, 0xFFD9D0CB, false), Ui.lp(-2, -2, 0, 4, 0, 0));
+        head.addView(Ui.text(this, "Android Code Environment", 13, 0xFFC9D1DB, false));
+        head.addView(Ui.text(this, "Version " + Ui.VERSION, 11.5f, 0xFFB6C3D3, false), Ui.lp(-2, -2, 0, 4, 0, 0));
         col.addView(head, new LinearLayout.LayoutParams(-1, -2));
 
         LinearLayout body = new LinearLayout(this);

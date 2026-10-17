@@ -84,7 +84,7 @@ public class NewProjectActivity extends Activity {
 
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.VERTICAL);
-        header.setBackground(Ui.gradient(Ui.HEAD_TOP, Ui.ACCENT, 0, this));
+        header.setBackground(Ui.gradient(Ui.HEAD_TOP, Ui.HEAD_BOTTOM, 0, this));
         header.setPadding(Ui.dp(18), Ui.dp(26), Ui.dp(18), Ui.dp(22));
 
         TextView back = Ui.text(this, "←  Back", 15, Color.WHITE, true);
@@ -478,7 +478,7 @@ public class NewProjectActivity extends Activity {
 
         LinearLayout header = new LinearLayout(this);
         header.setOrientation(LinearLayout.VERTICAL);
-        header.setBackground(Ui.gradient(0xFFB91C1C, Ui.RED, 0, this));
+        header.setBackground(Ui.gradient(0xFF8E2B2B, Ui.RED, 0, this));
         header.setPadding(Ui.dp(18), Ui.dp(26), Ui.dp(18), Ui.dp(20));
         TextView back = Ui.text(this, "←  Back", 15, Color.WHITE, true);
         back.setBackground(Ui.ripple(this, Ui.fill(0x33FFFFFF, 12, this)));

@@ -26,6 +26,36 @@ public final class Libs {
 
     public interface Progress { void onStatus(String msg); }
 
+    public interface ByteProgress { void onBytes(long done, long total); }
+
+    /** what a project needs: catalog + custom libraries (required) and their transitive dependencies (best effort) */
+    public static final class Plan {
+        public final java.util.LinkedHashSet<String> required = new java.util.LinkedHashSet<String>();
+        public final java.util.LinkedHashSet<String> optional = new java.util.LinkedHashSet<String>();
+        public java.util.Set<String> all() {
+            java.util.LinkedHashSet<String> s = new java.util.LinkedHashSet<String>(required);
+            s.addAll(optional);
+            return s;
+        }
+    }
+
+    /** import prefix -> catalog id */
+    private static final String[][] IMPORTS = {
+            {"gson", "com.google.gson"}, {"okhttp", "okhttp3"}, {"okhttp-log", "okhttp3.logging"},
+            {"retrofit", "retrofit2"}, {"retrofit-gson", "retrofit2.converter.gson"}, {"jsoup", "org.jsoup"},
+            {"lang3", "org.apache.commons.lang3"}, {"commons-io", "org.apache.commons.io"},
+            {"commons-codec", "org.apache.commons.codec"}, {"commons-coll", "org.apache.commons.collections4"},
+            {"commons-csv", "org.apache.commons.csv"}, {"commons-text", "org.apache.commons.text"},
+            {"commons-math", "org.apache.commons.math3"}, {"guava", "com.google.common"},
+            {"rxjava2", "io.reactivex."}, {"rxjava3", "io.reactivex.rxjava3"},
+            {"eventbus", "org.greenrobot.eventbus"}, {"joda", "org.joda.time"}, {"zxing", "com.google.zxing"},
+            {"zip4j", "net.lingala.zip4j"}, {"websocket", "org.java_websocket"}, {"mqtt", "org.eclipse.paho"},
+            {"commonmark", "org.commonmark"}, {"bouncy", "org.bouncycastle"}, {"ormlite", "com.j256.ormlite"},
+            {"picasso", "com.squareup.picasso"}, {"jbcrypt", "org.mindrot.jbcrypt"},
+            {"httpreq", "com.github.kevinsawicki.http"}, {"slf4j", "org.slf4j"},
+            {"annotations", "org.jetbrains.annotations"},
+    };
+
     private static final String OKHTTP = "com.squareup.okhttp3:okhttp:3.14.9";
     private static final String OKIO = "com.squareup.okio:okio:1.17.2";
     private static final String GSON = "com.google.code.gson:gson:2.10.1";
@@ -102,6 +132,15 @@ public final class Libs {
 
     /** returns the cached file, downloading it when needed */
     public static File ensure(Context c, String coord, Progress pr) throws IOException {
+        return ensure(c, coord, pr, null);
+    }
+
+    public static boolean isCached(Context c, String coord) {
+        File f = cacheFile(c, coord);
+        return f != null && f.isFile() && f.length() > 0;
+    }
+
+    public static File ensure(Context c, String coord, Progress pr, ByteProgress bp) throws IOException {
         String[] p = parse(coord);
         if (p == null) throw new IOException("Bad library coordinate: " + coord + " (use group:artifact:version)");
         File f = cacheFile(c, coord);
@@ -112,7 +151,7 @@ public final class Libs {
         for (String repo : REPOS) {
             try {
                 if (pr != null) pr.onStatus("Downloading " + p[1] + "-" + p[2] + "." + p[3] + " …");
-                download(repo + path, f);
+                download(repo + path, f, bp);
                 return f;
             } catch (IOException e) {
                 last = e;
@@ -122,15 +161,15 @@ public final class Libs {
                 + "\nCheck the coordinate and your internet connection.");
     }
 
-    private static void download(String url, File out) throws IOException {
+    private static void download(String url, File out, ByteProgress bp) throws IOException {
         File tmp = new File(out.getPath() + ".part");
         HttpURLConnection con = null;
         try {
             String u = url;
             for (int hop = 0; hop < 5; hop++) {
                 con = (HttpURLConnection) new URL(u).openConnection();
-                con.setConnectTimeout(15000);
-                con.setReadTimeout(30000);
+                con.setConnectTimeout(12000);
+                con.setReadTimeout(25000);
                 con.setRequestProperty("User-Agent", "ACE-Android-Code-Environment");
                 int code = con.getResponseCode();
                 if (code >= 300 && code < 400) {
@@ -143,12 +182,20 @@ public final class Libs {
                 if (code != 200) throw new IOException("HTTP " + code);
                 break;
             }
+            long total = con.getContentLength();
             InputStream in = con.getInputStream();
             FileOutputStream fo = new FileOutputStream(tmp);
-            byte[] buf = new byte[16384];
+            byte[] buf = new byte[65536];
             int n;
-            try { while ((n = in.read(buf)) > 0) fo.write(buf, 0, n); }
-            finally { fo.close(); in.close(); }
+            long done = 0;
+            try {
+                while ((n = in.read(buf)) > 0) {
+                    fo.write(buf, 0, n);
+                    done += n;
+                    if (bp != null) bp.onBytes(done, total);
+                }
+            } finally { fo.close(); in.close(); }
+            if (bp != null) bp.onBytes(done, done);
             if (out.exists()) out.delete();
             if (!tmp.renameTo(out)) throw new IOException("cannot move download");
         } finally {
@@ -168,13 +215,133 @@ public final class Libs {
         return s;
     }
 
+    // ------------------------------------------------------------------ auto detection
+
+    /** catalog ids whose packages are imported by the given source text */
+    public static Set<String> detectIdsInText(String text) {
+        Set<String> out = new LinkedHashSet<String>();
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("(?m)^\\s*import\\s+(?:static\\s+)?([A-Za-z0-9_.]+)").matcher(text);
+        while (m.find()) {
+            String imp = m.group(1);
+            for (String[] e : IMPORTS) {
+                String pre = e[1];
+                boolean hit = pre.endsWith(".") ? imp.startsWith(pre) && !imp.startsWith("io.reactivex.rxjava3") : (imp.equals(pre) || imp.startsWith(pre + "."));
+                if (hit) out.add(e[0]);
+            }
+        }
+        // a more specific entry (okhttp3.logging) implies the general one automatically through its coordinates
+        return out;
+    }
+
+    public static Set<String> detectIds(List<File> javaDirs) {
+        Set<String> out = new LinkedHashSet<String>();
+        int[] budget = {600};
+        for (File d : javaDirs) scan(d, out, budget);
+        return out;
+    }
+
+    private static void scan(File dir, Set<String> out, int[] budget) {
+        File[] fs = dir.listFiles();
+        if (fs == null) return;
+        for (File f : fs) {
+            if (budget[0] <= 0) return;
+            if (f.isDirectory()) { scan(f, out, budget); continue; }
+            if (!f.getName().endsWith(".java") || f.length() > 400000) continue;
+            budget[0]--;
+            try {
+                String t = FileUtil.readText(f);
+                int end = Math.min(t.length(), 20000);          // imports are at the top
+                out.addAll(detectIdsInText(t.substring(0, end)));
+            } catch (IOException ignored) { }
+        }
+    }
+
+    /** dependencies written in the module's build.gradle that ACE can resolve from Maven */
+    public static List<String> gradleCoords(ProjectLayout l) {
+        List<String> out = new ArrayList<String>();
+        if (l == null || l.moduleDir == null) return out;
+        for (String name : new String[]{"build.gradle", "build.gradle.kts"}) {
+            File g = new File(l.moduleDir, name);
+            if (!g.isFile()) continue;
+            try {
+                String s = FileUtil.readText(g);
+                java.util.regex.Matcher m = java.util.regex.Pattern.compile(
+                        "(?m)^\\s*(?:implementation|api|compile)\\s*\\(?\\s*[\"']([A-Za-z0-9_.\\-]+):([A-Za-z0-9_.\\-]+):([A-Za-z0-9_.\\-]+)(@aar)?[\"']").matcher(s);
+                while (m.find()) {
+                    String grp = m.group(1);
+                    if (grp.startsWith("androidx.") || grp.startsWith("com.android.") || grp.startsWith("com.google.android.")
+                            || grp.startsWith("com.google.firebase") || grp.equals("junit")) continue;
+                    out.add(grp + ":" + m.group(2) + ":" + m.group(3) + (m.group(4) != null ? "@aar" : ""));
+                }
+            } catch (IOException ignored) { }
+        }
+        return out;
+    }
+
+    private static String ga(String coord) {
+        String[] p = parse(coord);
+        return p == null ? coord : p[0] + ":" + p[1];
+    }
+
+    /** required = catalog + custom coordinates, optional = their transitive POM dependencies (network, best effort) */
+    public static Plan plan(Context c, Project p, boolean withTransitive) {
+        Plan plan = new Plan();
+        plan.required.addAll(coordsOf(p));
+        if (!withTransitive) return plan;
+        Set<String> have = new LinkedHashSet<String>();
+        for (String r : plan.required) have.add(ga(r));
+        for (String custom : p.customLibs) {
+            try {
+                java.util.ArrayList<String> queue = new java.util.ArrayList<String>();
+                java.util.ArrayList<Integer> depth = new java.util.ArrayList<Integer>();
+                queue.add(custom); depth.add(0);
+                for (int i = 0; i < queue.size() && plan.optional.size() < 60; i++) {
+                    if (depth.get(i) >= 3) continue;
+                    for (String dep : Pom.dependencies(c, queue.get(i))) {
+                        if (have.add(ga(dep))) {
+                            plan.optional.add(dep);
+                            queue.add(dep);
+                            depth.add(depth.get(i) + 1);
+                        }
+                    }
+                }
+            } catch (Throwable ignored) { }
+        }
+        return plan;
+    }
+
+    /** download everything in parallel; required failures throw, optional ones are skipped */
+    public static void ensureAll(final Context c, Plan plan, final Progress pr) throws IOException {
+        java.util.concurrent.ExecutorService ex = java.util.concurrent.Executors.newFixedThreadPool(4);
+        List<java.util.concurrent.Future<String>> fs = new ArrayList<java.util.concurrent.Future<String>>();
+        for (final String coord : plan.all()) {
+            if (isCached(c, coord)) continue;
+            final boolean req = plan.required.contains(coord);
+            fs.add(ex.submit(new java.util.concurrent.Callable<String>() {
+                @Override public String call() {
+                    try { ensure(c, coord, pr); return null; }
+                    catch (IOException e) { return req ? e.getMessage() : null; }
+                }
+            }));
+        }
+        String err = null;
+        for (java.util.concurrent.Future<String> f : fs) {
+            try { String r = f.get(); if (r != null && err == null) err = r; }
+            catch (Exception e) { if (err == null) err = String.valueOf(e.getMessage()); }
+        }
+        ex.shutdown();
+        if (err != null) throw new IOException(err);
+    }
+
     /** all jars/aars for the project: downloaded dependencies + files in the project's libs folders */
     public static List<File> resolve(Context c, Project p, ProjectLayout layout, Progress pr) throws IOException {
         List<File> out = new ArrayList<File>();
         Set<String> names = new LinkedHashSet<String>();
-        for (String coord : coordsOf(p)) {
-            File f = ensure(c, coord, pr);
-            if (names.add(f.getName())) out.add(f);
+        Plan plan = plan(c, p, true);
+        ensureAll(c, plan, pr);
+        for (String coord : plan.all()) {
+            File f = cacheFile(c, coord);
+            if (f != null && f.isFile() && names.add(f.getName())) out.add(f);
         }
         if (layout != null) {
             for (File d : layout.libDirs) {

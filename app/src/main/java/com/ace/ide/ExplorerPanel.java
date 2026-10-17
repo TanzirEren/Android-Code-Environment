@@ -129,9 +129,9 @@ final class ExplorerPanel {
 
     void show() {
         Drawable blur = GlassBlur.leftStrip(host.blurSource(), panel.getLayoutParams().width);
-        Drawable tint = Ui.fill(t.dark ? 0xCC15140F : 0xCCF3EEEA, 0, a);
+        Drawable tint = Ui.fill(t.panelTint, 0, a);
         if (blur != null) panel.setBackground(new LayerDrawable(new Drawable[]{blur, tint}));
-        else panel.setBackground(Ui.fill(t.dark ? 0xF015140F : 0xF0F3EEEA, 0, a));
+        else panel.setBackground(Ui.fill(0xF02A4A72, 0, a));
         refresh();
         overlay.setVisibility(View.VISIBLE);
         open = true;

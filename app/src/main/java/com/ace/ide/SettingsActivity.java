@@ -60,9 +60,7 @@ public class SettingsActivity extends Activity {
         SettingsUi s = new SettingsUi(this, col, SettingsUi.prefsStore(this));
 
         s.header("Appearance", Icons.IMAGE);
-        s.choice("themeMode", "Theme", new String[]{"Follow system", "Light", "Dark"}, new int[]{0, 1, 2}, 0, new SettingsUi.OnChange() {
-            @Override public void changed() { recreate(); }
-        });
+        s.info("ACE uses its blue theme: background #385F8C, icons and text #E9E9E9.");
         s.sw("showHidden", "Show hidden files", "Show .git, .gitignore and other dot-files in the explorer", false, null);
 
         s.header("Editor", Icons.EDIT);
@@ -86,6 +84,9 @@ public class SettingsActivity extends Activity {
         s.choice("defTargetSdk", "Target SDK", new String[]{"30", "31", "32", "33", "34"}, new int[]{30, 31, 32, 33, 34}, 34, null);
         s.choice("defTemplate", "Default template", Templates.NAMES, new int[]{0, 1, 2, 3}, 1, null);
         s.seek("defIconRadius", "Default icon corner radius", "0 = square, 50 = circle", 0, 50, 22, " %", null);
+
+        s.header("Libraries", Icons.LIB);
+        s.sw("autoLibs", "Auto-detect libraries", "Read imports and build.gradle, add the libraries a project needs and download them automatically", true, null);
 
         s.header("Java → DEX", Icons.CONVERT);
         s.choice("minApi", "Min API level for DEX", new String[]{"21", "23", "24", "26", "28", "29", "30"}, new int[]{21, 23, 24, 26, 28, 29, 30}, 21, null);
